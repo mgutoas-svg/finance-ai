@@ -1,2 +1,3 @@
-# finance-ai
-Sistema financeiro pessoal com suporte à tomada de decisão
+# Finance AI
+
+Sistema financeiro pessoal com foco em acompanhamento de movimentações, criação de metas e apoio à tomada de decisão.
