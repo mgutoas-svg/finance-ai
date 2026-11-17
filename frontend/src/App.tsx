@@ -3,6 +3,10 @@ import { AuthProvider } from './context/AuthContext';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { TransactionsPage } from './pages/TransactionsPage';
+import { UploadPage } from './pages/UploadPage';
+import { SubscriptionPage } from './pages/SubscriptionPage';
+import { OpenFinancePage } from './pages/OpenFinancePage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 function App() {
@@ -17,6 +21,38 @@ function App() {
             element={
               <ProtectedRoute>
                 <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/transactions"
+            element={
+              <ProtectedRoute>
+                <TransactionsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/upload"
+            element={
+              <ProtectedRoute>
+                <UploadPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/subscription"
+            element={
+              <ProtectedRoute>
+                <SubscriptionPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/open-finance"
+            element={
+              <ProtectedRoute>
+                <OpenFinancePage />
               </ProtectedRoute>
             }
           />
