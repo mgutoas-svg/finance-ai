@@ -30,7 +30,7 @@ model User {
 model Tenant {
   id                String   @id @default(cuid())
   name              String
-  type              String   @default("personal") // "personal" or "consultant"
+  type              String   @default("personal")
   ownerId           String
   owner             User?    @relation(fields: [ownerId], references: [id], onDelete: SetNull)
   users             User[]
@@ -40,6 +40,15 @@ model Tenant {
   files             File[]
   auditLogs         AuditLog[]
   auditConsents     AuditConsent[]
+  budgets           Budget[]
+  goals             Goal[]
+  alerts            AlertRule[]
+  recurrences       Recurrence[]
+  bankAccounts      BankAccount[]
+  creditCards       CreditCard[]
+  debts             Debt[]
+  investments       Investment[]
+  familyMembers     FamilyMember[]
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -150,5 +159,144 @@ model OpenFinanceToken {
   updatedAt               DateTime @updatedAt
 
   @@index([accountId])
-  @@unique([accountId]) // One token per account
+  @@unique([accountId])
+}
+
+// SPRINT 1: Budgets
+model Budget {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  category  String
+  limit     Float
+  period    String   @default("monthly")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@unique([tenantId, category, period])
+}
+
+// SPRINT 2: Goals
+model Goal {
+  id              String   @id @default(cuid())
+  tenantId        String
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name            String
+  targetAmount    Float
+  currentAmount   Float    @default(0)
+  deadline        DateTime
+  category        String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([deadline])
+}
+
+// SPRINT 3: Alerts
+model AlertRule {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  type      String   // "budget_exceeded", "goal_deadline", "account_low"
+  threshold Float?
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+}
+
+// SPRINT 4: Recurrences
+model Recurrence {
+  id               String   @id @default(cuid())
+  tenantId         String
+  tenant           Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  transactionId    String
+  frequency        String   // "daily", "weekly", "monthly", "annual"
+  endDate          DateTime?
+  nextOccurrence   DateTime
+  createdAt        DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([nextOccurrence])
+}
+
+// SPRINT 5-6: Bank Accounts & Credit Cards
+model BankAccount {
+  id               String   @id @default(cuid())
+  tenantId         String
+  tenant           Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  bankCode         String
+  bankName         String?
+  accountNumber    String
+  balance          Float
+  balanceUpdatedAt DateTime?
+  createdAt        DateTime @default(now())
+
+  @@index([tenantId])
+}
+
+model CreditCard {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  bankCode    String
+  cardName    String
+  limit       Float
+  usedAmount  Float    @default(0)
+  dueDay      Int
+  brand       String   // "Visa", "Mastercard"
+  createdAt   DateTime @default(now())
+
+  @@index([tenantId])
+}
+
+// SPRINT 7: Debts
+model Debt {
+  id               String   @id @default(cuid())
+  tenantId         String
+  tenant           Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  creditorName     String
+  totalAmount      Float
+  remainingAmount  Float
+  interestRate     Float    @default(0)
+  monthlyPayment   Float
+  startDate        DateTime
+  endDate          DateTime?
+  createdAt        DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([endDate])
+}
+
+// SPRINT 9: Investments
+model Investment {
+  id              String   @id @default(cuid())
+  tenantId        String
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  type            String   // "stock", "fund", "crypto", "treasury"
+  name            String
+  ticker          String?
+  quantity        Float
+  averageCost     Float
+  currentPrice    Float    @default(0)
+  createdAt       DateTime @default(now())
+
+  @@index([tenantId])
+}
+
+// SPRINT 11: Family Members
+model FamilyMember {
+  id           String   @id @default(cuid())
+  tenantId     String
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role         String   @default("viewer") // "admin", "editor", "viewer"
+  inviteStatus String   @default("pending") // "pending", "accepted"
+  createdAt    DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([userId])
 }
