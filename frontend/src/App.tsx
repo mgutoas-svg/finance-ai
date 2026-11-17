@@ -7,6 +7,7 @@ import { TransactionsPage } from './pages/TransactionsPage';
 import { UploadPage } from './pages/UploadPage';
 import { SubscriptionPage } from './pages/SubscriptionPage';
 import { OpenFinancePage } from './pages/OpenFinancePage';
+import { AnalyticsPage } from './pages/AnalyticsPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 function App() {
@@ -53,6 +54,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <OpenFinancePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/analytics"
+            element={
+              <ProtectedRoute>
+                <AnalyticsPage />
               </ProtectedRoute>
             }
           />
