@@ -1,0 +1,36 @@
+{
+  "name": "saas",
+  "version": "1.0.0",
+  "description": "Sistema financeiro pessoal com foco em acompanhamento de movimentações, criação de metas e apoio à tomada de decisão.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mgutoas-svg/finance-ai.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/mgutoas-svg/finance-ai/issues"
+  },
+  "homepage": "https://github.com/mgutoas-svg/finance-ai#readme",
+  "dependencies": {
+    "@nestjs/common": "^12.5.1",
+    "@nestjs/jwt": "^12.0.5",
+    "@nestjs/passport": "^12.0.2",
+    "@prisma/client": "^7.10.1",
+    "axios": "^1.21.1",
+    "bcryptjs": "^3.0.3",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
+    "prisma": "^8.0.0-rc.34",
+    "stripe": "^23.1.0"
+  }
+}

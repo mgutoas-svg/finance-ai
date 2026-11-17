@@ -1,0 +1,154 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String   @id @default(cuid())
+  email             String   @unique
+  passwordHash      String
+  tenantId          String
+  tenant            Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  role              String   @default("user") // "admin", "user", "consultant"
+  twoFactorSecret   String?
+  twoFactorEnabled  Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  auditLogs         AuditLog[]
+
+  @@index([tenantId])
+  @@index([email])
+}
+
+model Tenant {
+  id                String   @id @default(cuid())
+  name              String
+  type              String   @default("personal") // "personal" or "consultant"
+  ownerId           String
+  owner             User?    @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  users             User[]
+  subscriptions     Subscription[]
+  accounts          Account[]
+  transactions      Transaction[]
+  files             File[]
+  auditLogs         AuditLog[]
+  auditConsents     AuditConsent[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([ownerId])
+}
+
+model Subscription {
+  id                String   @id @default(cuid())
+  tenantId          String
+  tenant            Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  stripeCustomerId  String?  @unique
+  plan              String   @default("free") // "free", "basic", "pro"
+  status            String   @default("active") // "active", "canceled", "past_due"
+  currentPeriodEnd  DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([stripeCustomerId])
+}
+
+model Account {
+  id                    String   @id @default(cuid())
+  tenantId              String
+  tenant                Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  bankCode              String   // "001" = BCB, "260" = Nubank, etc
+  bankName              String?
+  openFinanceId         String?
+  encryptedCredentials  String?  @db.Text // JSON encrypted: {username, password, etc}
+  transactions          Transaction[]
+  openFinanceTokens     OpenFinanceToken[]
+  syncedAt              DateTime?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([openFinanceId])
+}
+
+model Transaction {
+  id                String   @id @default(cuid())
+  accountId         String
+  account           Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  date              DateTime
+  description       String
+  amount            Float
+  type              String   // "income" or "expense"
+  source            String   @default("manual") // "manual", "pdf", "ofx", "open_finance"
+  encryptedData     String?  @db.Text // JSON encrypted: extra sensitive info
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([accountId])
+  @@index([date])
+}
+
+model File {
+  id                String   @id @default(cuid())
+  tenantId          String
+  tenant            Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  type              String   // "pdf" or "ofx"
+  originalName      String
+  url               String
+  parsedData        String?  @db.Text // JSON: metadata from parser
+  transactionCount  Int      @default(0)
+  uploadedAt        DateTime @default(now())
+
+  @@index([tenantId])
+}
+
+model AuditLog {
+  id                String   @id @default(cuid())
+  tenantId          String
+  tenant            Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId            String?
+  user              User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action            String   // "user.login", "transaction.create", "data.access", etc
+  description       String?  @db.Text
+  createdAt         DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+model AuditConsent {
+  id                String   @id @default(cuid())
+  tenantId          String
+  tenant            Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  type              String   // "lgpd" or "open_finance"
+  accepted          Boolean  @default(true)
+  acceptedAt        DateTime @default(now())
+  expiresAt         DateTime?
+
+  @@index([tenantId])
+  @@index([type])
+}
+
+model OpenFinanceToken {
+  id                      String   @id @default(cuid())
+  accountId               String
+  account                 Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  encryptedAccessToken    String   @db.Text
+  encryptedRefreshToken   String?  @db.Text
+  expiresAt               DateTime
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@index([accountId])
+  @@unique([accountId]) // One token per account
+}
